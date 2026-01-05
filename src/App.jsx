@@ -2450,21 +2450,16 @@ function GitHubPagesRedirect() {
 
   useEffect(() => {
     // Check if we're on GitHub Pages and have a query string redirect
-    // Format: /?/path/to/route
+    // Format: /HiLabs_CredentialIQ/?/path/to/route
     if (location.search.startsWith("?/")) {
       const path = location.search
         .slice(2)
         .split("&")[0]
         .replace(/~and~/g, "&");
       if (path) {
-        // Remove the base path if present
-        const cleanPath = path.startsWith("/HiLabs_CredentialIQ/")
-          ? path.slice("/HiLabs_CredentialIQ".length)
-          : path.startsWith("HiLabs_CredentialIQ/")
-          ? "/" + path.slice("HiLabs_CredentialIQ".length + 1)
-          : path.startsWith("/")
-          ? path
-          : "/" + path;
+        // The path from the query string should already be relative to the base
+        // Just ensure it starts with /
+        const cleanPath = path.startsWith("/") ? path : "/" + path;
         navigate(cleanPath || "/", { replace: true });
       }
     }
@@ -2476,7 +2471,7 @@ function GitHubPagesRedirect() {
 // ============ APP ============
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/HiLabs_CredentialIQ">
       <GitHubPagesRedirect />
       <Routes>
         <Route path="/" element={<LoginPage />} />

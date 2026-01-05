@@ -23,15 +23,36 @@
       // then set segmentCount to 1, and the path /repo-name/one/two will be replaced
       // with /repo-name/?/one/two
       var pathSegmentsToKeep = 1;
+      var repoName = 'HiLabs_CredentialIQ';
 
       var l = window.location;
-      l.replace(
-        l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
-        l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/?/' +
-        l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/').replace(/&/g, '~and~') +
-        (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
-        l.hash
-      );
+      var pathSegments = l.pathname.split('/').filter(function(segment) {
+        return segment !== '';
+      });
+      
+      // Ensure we keep the repo name in the path
+      var basePath = '/' + repoName + '/';
+      var redirectPath = basePath + '?/';
+      
+      // Get the path after the repo name
+      var repoIndex = pathSegments.indexOf(repoName);
+      if (repoIndex !== -1) {
+        var routePath = pathSegments.slice(repoIndex + 1).join('/');
+        if (routePath) {
+          redirectPath += routePath.replace(/&/g, '~and~');
+        }
+      } else {
+        // If repo name not in path, add the full path
+        redirectPath += pathSegments.join('/').replace(/&/g, '~and~');
+      }
+      
+      // Preserve query string and hash
+      if (l.search && !l.search.startsWith('?/')) {
+        redirectPath += '&' + l.search.slice(1).replace(/&/g, '~and~');
+      }
+      redirectPath += l.hash;
+      
+      l.replace(l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') + redirectPath);
     </script>
   </head>
   <body>
