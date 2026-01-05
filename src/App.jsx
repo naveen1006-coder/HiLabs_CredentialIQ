@@ -187,7 +187,9 @@ function Sidebar({ collapsed, onToggle }) {
             flexShrink: 0,
           }}
         >
-          <CirclePile style={{ width: "16px", height: "16px", color: "white" }} />
+          <CirclePile
+            style={{ width: "16px", height: "16px", color: "white" }}
+          />
         </div>
         {!collapsed && (
           <div>
@@ -2441,10 +2443,41 @@ function SettingsPage() {
   );
 }
 
+// ============ GITHUB PAGES SPA REDIRECT HANDLER ============
+function GitHubPagesRedirect() {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check if we're on GitHub Pages and have a query string redirect
+    // Format: /?/path/to/route
+    if (location.search.startsWith("?/")) {
+      const path = location.search
+        .slice(2)
+        .split("&")[0]
+        .replace(/~and~/g, "&");
+      if (path) {
+        // Remove the base path if present
+        const cleanPath = path.startsWith("/HiLabs_CredentialIQ/")
+          ? path.slice("/HiLabs_CredentialIQ".length)
+          : path.startsWith("HiLabs_CredentialIQ/")
+          ? "/" + path.slice("HiLabs_CredentialIQ".length + 1)
+          : path.startsWith("/")
+          ? path
+          : "/" + path;
+        navigate(cleanPath || "/", { replace: true });
+      }
+    }
+  }, [location, navigate]);
+
+  return null;
+}
+
 // ============ APP ============
 function App() {
   return (
     <BrowserRouter>
+      <GitHubPagesRedirect />
       <Routes>
         <Route path="/" element={<LoginPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
