@@ -2451,6 +2451,7 @@ function GitHubPagesRedirect() {
   useEffect(() => {
     // Check if we're on GitHub Pages and have a query string redirect
     // Format: /HiLabs_CredentialIQ/?/path/to/route
+    // This only runs when 404.html redirects us (not on normal navigation)
     if (location.search.startsWith("?/")) {
       const path = location.search
         .slice(2)

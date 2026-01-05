@@ -22,37 +22,45 @@
       // For example, if your app is served from https://username.github.io/repo-name/,
       // then set segmentCount to 1, and the path /repo-name/one/two will be replaced
       // with /repo-name/?/one/two
-      var pathSegmentsToKeep = 1;
       var repoName = 'HiLabs_CredentialIQ';
-
       var l = window.location;
-      var pathSegments = l.pathname.split('/').filter(function(segment) {
-        return segment !== '';
-      });
+      var pathname = l.pathname;
+      var basePath = '/' + repoName;
       
-      // Ensure we keep the repo name in the path
-      var basePath = '/' + repoName + '/';
-      var redirectPath = basePath + '?/';
-      
-      // Get the path after the repo name
-      var repoIndex = pathSegments.indexOf(repoName);
-      if (repoIndex !== -1) {
-        var routePath = pathSegments.slice(repoIndex + 1).join('/');
-        if (routePath) {
-          redirectPath += routePath.replace(/&/g, '~and~');
+      // Only redirect if we're NOT already at the base path and NOT already redirected
+      // This prevents infinite redirects and only runs on actual 404s
+      if (!pathname.startsWith(basePath) && !l.search.startsWith('?/')) {
+        // If we're at root domain, redirect to base path
+        if (pathname === '/' || pathname === '') {
+          l.replace(l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') + basePath + '/');
+          return;
         }
-      } else {
-        // If repo name not in path, add the full path
-        redirectPath += pathSegments.join('/').replace(/&/g, '~and~');
+        // If we're somewhere else, redirect to base path with the route
+        l.replace(l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') + basePath + pathname + l.search + l.hash);
+        return;
       }
       
-      // Preserve query string and hash
-      if (l.search && !l.search.startsWith('?/')) {
-        redirectPath += '&' + l.search.slice(1).replace(/&/g, '~and~');
+      // If we're already at the base path, convert to query string format for SPA routing
+      // This only happens on 404s (when a route doesn't exist as a file)
+      if (pathname.startsWith(basePath) && !l.search.startsWith('?/')) {
+        var routePath = pathname.slice(basePath.length) || '/';
+        if (routePath === '/') {
+          routePath = '';
+        }
+        
+        // Build the redirect URL with query string format
+        var redirectPath = basePath + '/?/' + routePath.replace(/^\//, '').replace(/&/g, '~and~');
+        
+        // Preserve existing query string (if not already in ?/ format)
+        if (l.search && !l.search.startsWith('?/')) {
+          redirectPath += '&' + l.search.slice(1).replace(/&/g, '~and~');
+        }
+        
+        // Preserve hash
+        redirectPath += l.hash;
+        
+        l.replace(l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') + redirectPath);
       }
-      redirectPath += l.hash;
-      
-      l.replace(l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') + redirectPath);
     </script>
   </head>
   <body>
