@@ -10,60 +10,57 @@
       // https://github.com/rafgraph/spa-github-pages
       // This script takes the current url and converts the path and query
       // string into just a query string, and then redirects the browser
-      // to the new url with only a query string and hash fragment,
-      // e.g. https://www.foo.tld/one/two?a=b&c=d#qwe, becomes
-      // https://www.foo.tld/?/one/two&a=b~and~c=d#qwe
+      // to index.html with the path in the query string.
       // Note: this 404.html file must be at least 512 bytes for it to work
       // with Internet Explorer (it is currently > 512 bytes)
 
-      // If you're creating a Project Pages site and NOT using a custom domain,
-      // then set segmentCount to 1 (enterprise users may need to set it to > 1).
-      // This way the code will only replace the route part and not the real directory.
-      // For example, if your app is served from https://username.github.io/repo-name/,
-      // then set segmentCount to 1, and the path /repo-name/one/two will be replaced
-      // with /repo-name/?/one/two
       var repoName = 'HiLabs_CredentialIQ';
       var l = window.location;
       var pathname = l.pathname;
       var basePath = '/' + repoName;
       
-      // Only redirect if we're NOT already at the base path and NOT already redirected
-      // This prevents infinite redirects and only runs on actual 404s
-      if (!pathname.startsWith(basePath) && !l.search.startsWith('?/')) {
-        // If we're at root domain, redirect to base path
-        if (pathname === '/' || pathname === '') {
-          l.replace(l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') + basePath + '/');
-          return;
+      // Don't redirect if we're already in the redirect format
+      if (!l.search.startsWith('?/')) {
+        // Ensure we're in the base path
+        if (!pathname.startsWith(basePath)) {
+          // Redirect to base path
+          var newPath = basePath + (pathname === '/' ? '/' : pathname);
+          l.replace(l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') + newPath + l.search + l.hash);
+        } else {
+          // Extract the route part (everything after /HiLabs_CredentialIQ)
+          var routePath = pathname.slice(basePath.length);
+          if (!routePath || routePath === '/') {
+            routePath = '';
+          } else {
+            // Remove leading slash
+            routePath = routePath.replace(/^\//, '');
+          }
+          
+          // Build the redirect URL with query string format
+          // This will load index.html which has the React app
+          var redirectPath = basePath + '/?/' + routePath.replace(/&/g, '~and~');
+          
+          // Preserve existing query string (if not already in ?/ format)
+          if (l.search) {
+            redirectPath += '&' + l.search.slice(1).replace(/&/g, '~and~');
+          }
+          
+          // Preserve hash
+          redirectPath += l.hash;
+          
+          // Redirect to index.html with the path in query string
+          l.replace(l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') + redirectPath);
         }
-        // If we're somewhere else, redirect to base path with the route
-        l.replace(l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') + basePath + pathname + l.search + l.hash);
-        return;
-      }
-      
-      // If we're already at the base path, convert to query string format for SPA routing
-      // This only happens on 404s (when a route doesn't exist as a file)
-      if (pathname.startsWith(basePath) && !l.search.startsWith('?/')) {
-        var routePath = pathname.slice(basePath.length) || '/';
-        if (routePath === '/') {
-          routePath = '';
-        }
-        
-        // Build the redirect URL with query string format
-        var redirectPath = basePath + '/?/' + routePath.replace(/^\//, '').replace(/&/g, '~and~');
-        
-        // Preserve existing query string (if not already in ?/ format)
-        if (l.search && !l.search.startsWith('?/')) {
-          redirectPath += '&' + l.search.slice(1).replace(/&/g, '~and~');
-        }
-        
-        // Preserve hash
-        redirectPath += l.hash;
-        
-        l.replace(l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') + redirectPath);
       }
     </script>
   </head>
   <body>
+    <!-- This page redirects to index.html with the route in the query string -->
+    <!-- If JavaScript is disabled, show a message -->
+    <noscript>
+      <p>Please enable JavaScript to view this application.</p>
+      <p><a href="/HiLabs_CredentialIQ/">Go to home page</a></p>
+    </noscript>
   </body>
 </html>
 
