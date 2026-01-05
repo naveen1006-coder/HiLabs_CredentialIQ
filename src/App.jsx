@@ -48,6 +48,7 @@ import {
   AlertTriangle,
   CheckCircle,
   Menu,
+  CirclePile,
 } from "lucide-react";
 
 import { LoginPage } from "./components/LoginPage";
@@ -186,7 +187,7 @@ function Sidebar({ collapsed, onToggle }) {
             flexShrink: 0,
           }}
         >
-          <Zap style={{ width: "16px", height: "16px", color: "white" }} />
+          <CirclePile style={{ width: "16px", height: "16px", color: "white" }} />
         </div>
         {!collapsed && (
           <div>
