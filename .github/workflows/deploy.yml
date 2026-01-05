@@ -28,20 +28,34 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Determine project directory
+        id: project-dir
+        run: |
+          if [ -f "credential-iq/package.json" ]; then
+            echo "dir=credential-iq" >> $GITHUB_OUTPUT
+            echo "package-lock=credential-iq/package-lock.json" >> $GITHUB_OUTPUT
+          elif [ -f "package.json" ]; then
+            echo "dir=." >> $GITHUB_OUTPUT
+            echo "package-lock=package-lock.json" >> $GITHUB_OUTPUT
+          else
+            echo "Error: Could not find package.json"
+            exit 1
+          fi
+
       - name: Cache node modules
         uses: actions/cache@v4
         with:
-          path: credential-iq/node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('credential-iq/package-lock.json') }}
+          path: ${{ steps.project-dir.outputs.dir }}/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles(steps.project-dir.outputs.package-lock) }}
           restore-keys: |
             ${{ runner.os }}-node-
 
       - name: Install dependencies
-        working-directory: credential-iq
+        working-directory: ${{ steps.project-dir.outputs.dir }}
         run: npm ci
 
       - name: Build
-        working-directory: credential-iq
+        working-directory: ${{ steps.project-dir.outputs.dir }}
         run: npm run build
         env:
           NODE_ENV: production
@@ -52,7 +66,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './credential-iq/dist'
+          path: ${{ steps.project-dir.outputs.dir }}/dist
 
   deploy:
     environment:
